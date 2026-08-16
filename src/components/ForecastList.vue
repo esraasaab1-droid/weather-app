@@ -1,21 +1,44 @@
 <script setup>
+import { ref } from 'vue'
 import { weatherCodeToInfo, dayShortName } from '../services/weatherApi'
 
 defineProps({
   daily: Object
 })
+
+const cardsRef = ref(null)
+
+function scrollCards(amount) {
+  if (cardsRef.value) {
+    cardsRef.value.scrollBy({ left: amount, behavior: 'smooth' })
+  }
+}
+
+function scrollNext() {
+  scrollCards(150)
+}
+
+function scrollPrev() {
+  scrollCards(-150)
+}
+
+function showMore() {
+  if (cardsRef.value) {
+    cardsRef.value.scrollTo({ left: cardsRef.value.scrollWidth, behavior: 'smooth' })
+  }
+}
 </script>
 
 <template>
   <div class="forecast-section" v-if="daily">
     <div class="forecast-header">
       <span class="title">توقعات {{ daily.time.length }} أيام القادمة</span>
-      <span class="more">عرض المزيد ‹</span>
+      <span class="more" @click="showMore">عرض المزيد ‹</span>
     </div>
 
     <div class="forecast-row">
-      <button class="nav-btn">›</button>
-      <div class="cards">
+      <button class="nav-btn" @click="scrollNext">›</button>
+      <div class="cards" ref="cardsRef">
         <div
           v-for="(date, i) in daily.time"
           :key="date"
@@ -30,7 +53,7 @@ defineProps({
           <span class="cond">{{ weatherCodeToInfo(daily.weather_code[i]).label }}</span>
         </div>
       </div>
-      <button class="nav-btn">‹</button>
+      <button class="nav-btn" @click="scrollPrev">‹</button>
     </div>
   </div>
 </template>
@@ -74,6 +97,7 @@ defineProps({
   gap: 8px;
   overflow-x: auto;
   flex: 1;
+  scroll-behavior: smooth;
 }
 .day-card {
   display: flex;
