@@ -42,6 +42,24 @@ function handleToggleFavorite(city) {
   }
 }
 
+async function getCityNameFromCoords(lat, lon) {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=ar`
+    )
+    const data = await response.json()
+    return (
+      data.address?.city ||
+      data.address?.town ||
+      data.address?.village ||
+      data.address?.state ||
+      'موقعي الحالي'
+    )
+  } catch (e) {
+    return 'موقعي الحالي'
+  }
+}
+
 function useCurrentLocation() {
   if (!navigator.geolocation) {
     error.value = 'المتصفح ما بيدعم تحديد الموقع'
@@ -49,11 +67,15 @@ function useCurrentLocation() {
   }
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
+      const lat = pos.coords.latitude
+      const lon = pos.coords.longitude
+      const name = await getCityNameFromCoords(lat, lon)
+
       const city = {
         id: 'current-location',
-        name: 'موقعي الحالي',
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude
+        name,
+        latitude: lat,
+        longitude: lon
       }
       await loadCity(city)
     },
