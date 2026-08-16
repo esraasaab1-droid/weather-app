@@ -1,22 +1,44 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import SearchBar from './components/SearchBar.vue'
 import WeatherCard from './components/WeatherCard.vue'
 import ForecastList from './components/ForecastList.vue'
 import SunInfoRow from './components/SunInfoRow.vue'
+import FavoritesList from './components/FavoritesList.vue'
 import { getWeather } from './services/weatherApi'
+import { getFavorites, addFavorite, removeFavorite, isFavorite } from './services/favorites'
 
 const cityName = ref('')
+const currentCity = ref(null)
 const weather = ref(null)
 const error = ref('')
+const favorites = ref([])
 
-async function handleSelectCity(city) {
+onMounted(() => {
+  favorites.value = getFavorites()
+})
+
+async function loadCity(city) {
   error.value = ''
   cityName.value = city.name
+  currentCity.value = city
   try {
     weather.value = await getWeather(city.latitude, city.longitude)
   } catch (e) {
     error.value = 'صار خطأ بجلب بيانات الطقس'
+  }
+}
+
+function handleSelectCity(city) {
+  loadCity(city)
+}
+
+function handleToggleFavorite(city) {
+  if (!city) return
+  if (isFavorite(city)) {
+    favorites.value = removeFavorite(city)
+  } else {
+    favorites.value = addFavorite(city)
   }
 }
 
@@ -27,13 +49,13 @@ function useCurrentLocation() {
   }
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
-      error.value = ''
-      cityName.value = 'موقعي الحالي'
-      try {
-        weather.value = await getWeather(pos.coords.latitude, pos.coords.longitude)
-      } catch (e) {
-        error.value = 'صار خطأ بجلب بيانات الطقس'
+      const city = {
+        id: 'current-location',
+        name: 'موقعي الحالي',
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude
       }
+      await loadCity(city)
     },
     () => { error.value = 'ما قدرنا نحدد موقعك' }
   )
@@ -47,9 +69,11 @@ function useCurrentLocation() {
       <p class="subtitle">اعرف حالة الطقس في أي مدينة حول العالم</p>
 
       <SearchBar @select-city="handleSelectCity" />
-      <p class="location-link" @click="useCurrentLocation"> موقعي الحالي</p>
-      <p class="hint"> مثال: دمشق، الرياض، القاهرة، إسطنبول...</p>
+      <p class="location-link" @click="useCurrentLocation">📍 موقعي الحالي</p>
+      <p class="hint">📍 مثال: دمشق، الرياض، القاهرة، إسطنبول...</p>
     </div>
+
+    <FavoritesList :favorites="favorites" @select-favorite="loadCity" />
 
     <p v-if="error" class="error">{{ error }}</p>
 
@@ -83,7 +107,12 @@ function useCurrentLocation() {
     </div>
 
     <template v-else>
-      <WeatherCard :city-name="cityName" :weather="weather" />
+      <WeatherCard
+        :city-name="cityName"
+        :weather="weather"
+        :city="currentCity"
+        @toggle-favorite="handleToggleFavorite"
+      />
       <ForecastList :daily="weather?.daily" />
       <SunInfoRow :daily="weather?.daily" :current="weather?.current" />
       <p class="footer-note">🔄 تحديث البيانات كل 10 دقائق</p>

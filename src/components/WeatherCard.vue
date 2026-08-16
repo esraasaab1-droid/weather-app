@@ -1,20 +1,24 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { weatherCodeToInfo, formatFullDate } from '../services/weatherApi'
+import { isFavorite } from '../services/favorites'
 
 const props = defineProps({
   cityName: String,
-  weather: Object
+  weather: Object,
+  city: Object
 })
 
-const isFavorite = ref(false)
+const emit = defineEmits(['toggle-favorite'])
+
 const info = computed(() => weatherCodeToInfo(props.weather?.current?.weather_code))
+const favorited = computed(() => (props.city ? isFavorite(props.city) : false))
 </script>
 
 <template>
   <div class="weather-card" v-if="weather">
-    <button class="fav-btn" @click="isFavorite = !isFavorite">
-      {{ isFavorite ? '❤️' : '🤍' }}
+    <button class="fav-btn" @click="emit('toggle-favorite', city)">
+      {{ favorited ? '❤️' : '🤍' }}
     </button>
 
     <h2>{{ cityName }}</h2>
