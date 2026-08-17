@@ -7,9 +7,16 @@ const props = defineProps({
 })
 
 const showOutfit = ref(false)
+const cardsRow = ref(null)
 
 function toggleOutfit() {
   showOutfit.value = !showOutfit.value
+}
+
+function scrollCards(direction) {
+  if (!cardsRow.value) return
+  const amount = 90 // approx one card width + gap
+  cardsRow.value.scrollBy({ left: direction * amount, behavior: 'smooth' })
 }
 
 const outfitSuggestion = computed(() => {
@@ -62,8 +69,9 @@ const outfitSuggestion = computed(() => {
     </div>
 
     <div class="forecast-row">
-      <button class="nav-btn">›</button>
-      <div class="cards">
+      <!-- بالـ RTL: هاد الزر (يمين) لازم يودّي لبداية القائمة = الأيام السابقة -->
+      <button class="nav-btn nav-prev" aria-label="الأيام السابقة" @click="scrollCards(1)">‹</button>
+      <div class="cards" ref="cardsRow">
         <div
           v-for="(date, i) in daily.time"
           :key="date"
@@ -78,7 +86,8 @@ const outfitSuggestion = computed(() => {
           <span class="cond">{{ weatherCodeToInfo(daily.weather_code[i]).label }}</span>
         </div>
       </div>
-      <button class="nav-btn">‹</button>
+      <!-- بالـ RTL: هاد الزر (يسار) لازم يودّي لنهاية القائمة = الأيام القادمة -->
+      <button class="nav-btn nav-next" aria-label="الأيام القادمة" @click="scrollCards(-1)">›</button>
     </div>
   </div>
 </template>
@@ -146,11 +155,17 @@ const outfitSuggestion = computed(() => {
   cursor: pointer;
   flex-shrink: 0;
 }
+/* بما إنه الصفحة RTL، الرمزين لازم ينعكسو بصرياً حتى يطابقو اتجاه السهم الفعلي */
+[dir="rtl"] .nav-prev,
+[dir="rtl"] .nav-next {
+  transform: scaleX(-1);
+}
 .cards {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   flex: 1;
+  scroll-behavior: smooth;
 }
 .day-card {
   display: flex;
