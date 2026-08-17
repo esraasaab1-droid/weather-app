@@ -51,7 +51,7 @@ function getClothingSuggestion(tempMax, weatherCode) {
   <div class="forecast-section" v-if="daily">
     <div class="forecast-header">
       <span class="title">توقعات {{ daily.time.length }} أيام القادمة</span>
-      <span class="more" @click="toggleSuggestion">عرض المزيد ‹</span>
+      <span class="more" @click="toggleSuggestion"> الملابس المقترحة ‹</span>
     </div>
 
     <div class="forecast-row">
