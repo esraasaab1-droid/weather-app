@@ -15,7 +15,11 @@ function toggleOutfit() {
 
 function scroll(direction) {
   if (!cardsRef.value) return
-  cardsRef.value.scrollBy({ left: direction * 160, behavior: 'smooth' })
+
+  cardsRef.value.scrollBy({
+    left: direction * 160,
+    behavior: 'smooth'
+  })
 }
 
 const outfitSuggestion = computed(() => {
@@ -68,7 +72,7 @@ const outfitSuggestion = computed(() => {
     </div>
 
     <div class="forecast-row">
-      <button class="nav-btn" @click="scroll(1)">›</button>
+<button class="nav-btn" @click="scroll(1)">›</button>
       <div class="cards" ref="cardsRef">
         <div
           v-for="(date, i) in daily.time"
@@ -84,7 +88,7 @@ const outfitSuggestion = computed(() => {
           <span class="cond">{{ weatherCodeToInfo(daily.weather_code[i]).label }}</span>
         </div>
       </div>
-      <button class="nav-btn" @click="scroll(-1)">‹</button>
+<button class="nav-btn" @click="scroll(-1)">‹</button>
     </div>
   </div>
 </template>
@@ -156,8 +160,11 @@ const outfitSuggestion = computed(() => {
   gap: 8px;
   overflow-x: auto;
   flex: 1;
+  direction: ltr;
 }
+
 .day-card {
+  direction: rtl;
   display: flex;
   flex-direction: column;
   align-items: center;
