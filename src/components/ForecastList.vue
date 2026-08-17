@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { weatherCodeToInfo, dayShortName } from '../services/weatherApi'
 
 const props = defineProps({
@@ -14,10 +14,14 @@ function toggleOutfit() {
 }
 
 function scrollCards(direction) {
-  if (!cardsRef.value) return
+  const container = cardsRef.value
 
-  cardsRef.value.scrollBy({
-    left: direction * 200,
+  if (!container) return
+
+  const scrollAmount = 200
+
+  container.scrollTo({
+    left: container.scrollLeft + direction * scrollAmount,
     behavior: 'smooth'
   })
 }
@@ -76,7 +80,10 @@ const outfitSuggestion = computed(() => {
 </script>
 
 <template>
-  <div class="forecast-section" v-if="daily">
+  <div
+    class="forecast-section"
+    v-if="daily"
+  >
 
     <!-- Header -->
     <div class="forecast-header">
@@ -84,15 +91,19 @@ const outfitSuggestion = computed(() => {
         توقعات {{ daily.time.length }} أيام القادمة
       </span>
 
-      <button class="more" @click="toggleOutfit">
+      <button
+        class="more"
+        type="button"
+        @click="toggleOutfit"
+      >
         الملابس المقترحة ‹
       </button>
     </div>
 
-    <!-- Outfit -->
+    <!-- Outfit Panel -->
     <div
-      class="outfit-panel"
       v-if="showOutfit && outfitSuggestion"
+      class="outfit-panel"
     >
       <div class="outfit-icon">
         {{ outfitSuggestion.icon }}
@@ -100,7 +111,8 @@ const outfitSuggestion = computed(() => {
 
       <div class="outfit-info">
         <span class="outfit-temp">
-          اليوم {{ outfitSuggestion.temp }}° -
+          اليوم {{ outfitSuggestion.temp }}°
+          -
           {{ outfitSuggestion.label }}
         </span>
 
@@ -115,21 +127,22 @@ const outfitSuggestion = computed(() => {
       </div>
     </div>
 
-    <!-- Forecast -->
+    <!-- Forecast Row -->
     <div class="forecast-row">
 
-      <!-- Previous -->
+      <!-- Right Arrow -->
       <button
         class="nav-btn"
+        type="button"
         @click="scrollCards(-1)"
       >
         ›
       </button>
 
-      <!-- Cards -->
+      <!-- Cards Container -->
       <div
-        class="cards"
         ref="cardsRef"
+        class="cards"
       >
         <div
           v-for="(date, i) in daily.time"
@@ -137,6 +150,7 @@ const outfitSuggestion = computed(() => {
           class="day-card"
           :class="{ today: i === 0 }"
         >
+
           <span class="day-name">
             {{ i === 0 ? 'اليوم' : dayShortName(date) }}
           </span>
@@ -154,22 +168,26 @@ const outfitSuggestion = computed(() => {
           <span class="cond">
             {{ weatherCodeToInfo(daily.weather_code[i]).label }}
           </span>
+
         </div>
       </div>
 
-      <!-- Next -->
+      <!-- Left Arrow -->
       <button
         class="nav-btn"
+        type="button"
         @click="scrollCards(1)"
       >
         ‹
       </button>
 
     </div>
+
   </div>
 </template>
 
 <style scoped>
+
 .forecast-section {
   max-width: 480px;
   margin: 20px auto 0;
@@ -178,6 +196,8 @@ const outfitSuggestion = computed(() => {
   padding: 16px;
   box-shadow: 0 4px 16px rgba(37, 99, 235, 0.06);
 }
+
+/* Header */
 
 .forecast-header {
   display: flex;
@@ -201,6 +221,8 @@ const outfitSuggestion = computed(() => {
   padding: 0;
   font-family: inherit;
 }
+
+/* Outfit */
 
 .outfit-panel {
   display: flex;
@@ -240,35 +262,67 @@ const outfitSuggestion = computed(() => {
   margin-top: 2px;
 }
 
+/* Forecast */
+
 .forecast-row {
   display: flex;
   align-items: center;
   gap: 6px;
+  width: 100%;
 }
 
+/* Arrows */
+
 .nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   background: #EFF6FF;
   border: none;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
+
+  width: 32px;
+  height: 32px;
+
+  min-width: 32px;
+
   color: #2563EB;
-  font-size: 16px;
+  font-size: 20px;
+
   cursor: pointer;
+
   flex-shrink: 0;
+
+  transition: 0.2s ease;
 }
 
 .nav-btn:hover {
   background: #DBEAFE;
+  transform: scale(1.05);
 }
+
+.nav-btn:active {
+  transform: scale(0.95);
+}
+
+/* Cards */
 
 .cards {
   display: flex;
   gap: 8px;
-  overflow-x: auto;
+
   flex: 1;
+  min-width: 0;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
   scroll-behavior: smooth;
+
   scrollbar-width: none;
+
+  direction: ltr;
 }
 
 .cards::-webkit-scrollbar {
@@ -279,14 +333,21 @@ const outfitSuggestion = computed(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
+
   gap: 4px;
+
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
+
   border-radius: 12px;
+
   padding: 10px 8px;
+
   min-width: 78px;
-  text-align: center;
+
   flex-shrink: 0;
+
+  text-align: center;
 }
 
 .day-card.today {
@@ -314,4 +375,5 @@ const outfitSuggestion = computed(() => {
   font-size: 10px;
   color: #94A3B8;
 }
+
 </style>
