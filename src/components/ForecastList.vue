@@ -1,68 +1,74 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { weatherCodeToInfo, dayShortName } from '../services/weatherApi'
 
-defineProps({
+const props = defineProps({
   daily: Object
 })
 
-const cardsRef = ref(null)
-const selectedDay = ref(0)
-const showSuggestion = ref(false)
+const showOutfit = ref(false)
 
-function scrollCards(amount) {
-  if (cardsRef.value) {
-    cardsRef.value.scrollBy({ left: amount, behavior: 'smooth' })
+function toggleOutfit() {
+  showOutfit.value = !showOutfit.value
+}
+
+const outfitSuggestion = computed(() => {
+  if (!props.daily) return null
+
+  const maxTemp = props.daily.temperature_2m_max[0]
+  const code = props.daily.weather_code[0]
+  const info = weatherCodeToInfo(code)
+
+  let clothes = []
+  let icon = '👕'
+
+  if (maxTemp >= 30) {
+    clothes = ['قميص خفيف قصير الكم', 'شورت أو بنطلون خفيف', 'نظارة شمس وقبعة']
+    icon = '🩳'
+  } else if (maxTemp >= 22) {
+    clothes = ['قميص أو تيشيرت', 'بنطلون خفيف', 'حذاء مريح']
+    icon = '👕'
+  } else if (maxTemp >= 15) {
+    clothes = ['كنزة خفيفة أو جاكيت رقيق', 'بنطلون طويل', 'حذاء مغلق']
+    icon = '🧥'
+  } else {
+    clothes = ['معطف ثقيل', 'كنزة صوف', 'قفازات ووشاح']
+    icon = '🧣'
   }
-}
 
-function scrollNext() {
-  scrollCards(150)
-}
+  if (info.label && info.label.includes('مطر')) {
+    clothes.push('مظلة أو معطف واقي من المطر')
+  }
 
-function scrollPrev() {
-  scrollCards(-150)
-}
-
-function selectDay(i) {
-  selectedDay.value = i
-  showSuggestion.value = true
-}
-
-function toggleSuggestion() {
-  showSuggestion.value = !showSuggestion.value
-}
-
-function getClothingSuggestion(tempMax, weatherCode) {
-  const isRainy = [51, 53, 55, 61, 63, 65, 80, 81, 82].includes(weatherCode)
-  const isSnowy = [71, 73, 75, 77, 85, 86].includes(weatherCode)
-
-  if (isSnowy) return { icon: '🧥', text: 'معطف ثقيل، قفازات، وشاح — الجو ثلجي' }
-  if (isRainy) return { icon: '🌂', text: 'خذي مظلة ومعطف خفيف مقاوم للمطر' }
-  if (tempMax >= 32) return { icon: '👕', text: 'لبس خفيف وقطني، ونظارة شمس' }
-  if (tempMax >= 24) return { icon: '👚', text: 'لبس صيفي خفيف مريح' }
-  if (tempMax >= 15) return { icon: '🧥', text: 'جاكيت خفيف يكفي' }
-  if (tempMax >= 5) return { icon: '🧣', text: 'كنزة صوف وجاكيت سميك' }
-  return { icon: '🥶', text: 'معطف ثقيل جدًا، الجو قارس البرودة' }
-}
+  return { icon, clothes, temp: Math.round(maxTemp), label: info.label }
+})
 </script>
 
 <template>
   <div class="forecast-section" v-if="daily">
     <div class="forecast-header">
       <span class="title">توقعات {{ daily.time.length }} أيام القادمة</span>
-      <span class="more" @click="toggleSuggestion"> الملابس المقترحة ‹</span>
+      <button class="more" @click="toggleOutfit">الملابس المقترحة ‹</button>
+    </div>
+
+    <div class="outfit-panel" v-if="showOutfit && outfitSuggestion">
+      <div class="outfit-icon">{{ outfitSuggestion.icon }}</div>
+      <div class="outfit-info">
+        <span class="outfit-temp">اليوم {{ outfitSuggestion.temp }}° - {{ outfitSuggestion.label }}</span>
+        <ul class="outfit-list">
+          <li v-for="(item, idx) in outfitSuggestion.clothes" :key="idx">{{ item }}</li>
+        </ul>
+      </div>
     </div>
 
     <div class="forecast-row">
-      <button class="nav-btn" @click="scrollNext">›</button>
-      <div class="cards" ref="cardsRef">
+      <button class="nav-btn">›</button>
+      <div class="cards">
         <div
           v-for="(date, i) in daily.time"
           :key="date"
           class="day-card"
-          :class="{ today: i === 0, selected: i === selectedDay && showSuggestion }"
-          @click="selectDay(i)"
+          :class="{ today: i === 0 }"
         >
           <span class="day-name">{{ i === 0 ? 'اليوم' : dayShortName(date) }}</span>
           <span class="icon">{{ weatherCodeToInfo(daily.weather_code[i]).icon }}</span>
@@ -72,21 +78,7 @@ function getClothingSuggestion(tempMax, weatherCode) {
           <span class="cond">{{ weatherCodeToInfo(daily.weather_code[i]).label }}</span>
         </div>
       </div>
-      <button class="nav-btn" @click="scrollPrev">‹</button>
-    </div>
-
-    <div v-if="showSuggestion" class="suggestion-box">
-      <span class="suggestion-icon">
-        {{ getClothingSuggestion(daily.temperature_2m_max[selectedDay], daily.weather_code[selectedDay]).icon }}
-      </span>
-      <div class="suggestion-text">
-        <span class="suggestion-title">
-          اقتراح اللبس - {{ selectedDay === 0 ? 'اليوم' : dayShortName(daily.time[selectedDay]) }}
-        </span>
-        <span class="suggestion-desc">
-          {{ getClothingSuggestion(daily.temperature_2m_max[selectedDay], daily.weather_code[selectedDay]).text }}
-        </span>
-      </div>
+      <button class="nav-btn">‹</button>
     </div>
   </div>
 </template>
@@ -107,7 +99,36 @@ function getClothingSuggestion(tempMax, weatherCode) {
   margin-bottom: 12px;
 }
 .title { font-size: 14px; font-weight: 700; color: #0F172A; }
-.more { font-size: 12px; color: #2563EB; cursor: pointer; }
+.more {
+  font-size: 12px;
+  color: #2563EB;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+}
+
+.outfit-panel {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.outfit-icon { font-size: 28px; }
+.outfit-info { display: flex; flex-direction: column; gap: 4px; }
+.outfit-temp { font-size: 12px; font-weight: 700; color: #0F172A; }
+.outfit-list {
+  margin: 0;
+  padding-inline-start: 16px;
+  font-size: 12px;
+  color: #334155;
+}
+.outfit-list li { margin-top: 2px; }
 
 .forecast-row {
   display: flex;
@@ -130,7 +151,6 @@ function getClothingSuggestion(tempMax, weatherCode) {
   gap: 8px;
   overflow-x: auto;
   flex: 1;
-  scroll-behavior: smooth;
 }
 .day-card {
   display: flex;
@@ -143,34 +163,13 @@ function getClothingSuggestion(tempMax, weatherCode) {
   padding: 10px 8px;
   min-width: 78px;
   text-align: center;
-  cursor: pointer;
-  transition: all 0.15s;
 }
 .day-card.today {
   background: #EFF6FF;
   border-color: #2563EB;
 }
-.day-card.selected {
-  border-color: #2563EB;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-}
 .day-name { font-size: 12px; color: #64748B; font-weight: 600; }
 .icon { font-size: 24px; }
 .temps { font-size: 12px; font-weight: 700; color: #0F172A; }
 .cond { font-size: 10px; color: #94A3B8; }
-
-.suggestion-box {
-  margin-top: 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #F0F9FF;
-  border: 1px solid #BAE6FD;
-  border-radius: 14px;
-  padding: 12px 14px;
-}
-.suggestion-icon { font-size: 28px; }
-.suggestion-text { display: flex; flex-direction: column; gap: 2px; }
-.suggestion-title { font-size: 12px; font-weight: 700; color: #0F172A; }
-.suggestion-desc { font-size: 12px; color: #475569; }
 </style>
