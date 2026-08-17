@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed } from 'vue'
 import { weatherCodeToInfo, dayShortName } from '../services/weatherApi'
 
 const props = defineProps({
@@ -14,14 +14,10 @@ function toggleOutfit() {
 }
 
 function scrollCards(direction) {
-  const container = cardsRef.value
+  if (!cardsRef.value) return
 
-  if (!container) return
-
-  const scrollAmount = 200
-
-  container.scrollTo({
-    left: container.scrollLeft + direction * scrollAmount,
+  cardsRef.value.scrollBy({
+    left: direction * 200,
     behavior: 'smooth'
   })
 }
@@ -80,12 +76,8 @@ const outfitSuggestion = computed(() => {
 </script>
 
 <template>
-  <div
-    class="forecast-section"
-    v-if="daily"
-  >
+  <div class="forecast-section" v-if="daily">
 
-    <!-- Header -->
     <div class="forecast-header">
       <span class="title">
         توقعات {{ daily.time.length }} أيام القادمة
@@ -100,10 +92,9 @@ const outfitSuggestion = computed(() => {
       </button>
     </div>
 
-    <!-- Outfit Panel -->
     <div
-      v-if="showOutfit && outfitSuggestion"
       class="outfit-panel"
+      v-if="showOutfit && outfitSuggestion"
     >
       <div class="outfit-icon">
         {{ outfitSuggestion.icon }}
@@ -111,8 +102,7 @@ const outfitSuggestion = computed(() => {
 
       <div class="outfit-info">
         <span class="outfit-temp">
-          اليوم {{ outfitSuggestion.temp }}°
-          -
+          اليوم {{ outfitSuggestion.temp }}° -
           {{ outfitSuggestion.label }}
         </span>
 
@@ -127,10 +117,8 @@ const outfitSuggestion = computed(() => {
       </div>
     </div>
 
-    <!-- Forecast Row -->
     <div class="forecast-row">
 
-      <!-- Right Arrow -->
       <button
         class="nav-btn"
         type="button"
@@ -139,10 +127,9 @@ const outfitSuggestion = computed(() => {
         ›
       </button>
 
-      <!-- Cards Container -->
       <div
-        ref="cardsRef"
         class="cards"
+        ref="cardsRef"
       >
         <div
           v-for="(date, i) in daily.time"
@@ -150,7 +137,6 @@ const outfitSuggestion = computed(() => {
           class="day-card"
           :class="{ today: i === 0 }"
         >
-
           <span class="day-name">
             {{ i === 0 ? 'اليوم' : dayShortName(date) }}
           </span>
@@ -168,11 +154,9 @@ const outfitSuggestion = computed(() => {
           <span class="cond">
             {{ weatherCodeToInfo(daily.weather_code[i]).label }}
           </span>
-
         </div>
       </div>
 
-      <!-- Left Arrow -->
       <button
         class="nav-btn"
         type="button"
@@ -182,12 +166,10 @@ const outfitSuggestion = computed(() => {
       </button>
 
     </div>
-
   </div>
 </template>
 
 <style scoped>
-
 .forecast-section {
   max-width: 480px;
   margin: 20px auto 0;
@@ -196,8 +178,6 @@ const outfitSuggestion = computed(() => {
   padding: 16px;
   box-shadow: 0 4px 16px rgba(37, 99, 235, 0.06);
 }
-
-/* Header */
 
 .forecast-header {
   display: flex;
@@ -221,8 +201,6 @@ const outfitSuggestion = computed(() => {
   padding: 0;
   font-family: inherit;
 }
-
-/* Outfit */
 
 .outfit-panel {
   display: flex;
@@ -262,16 +240,12 @@ const outfitSuggestion = computed(() => {
   margin-top: 2px;
 }
 
-/* Forecast */
-
 .forecast-row {
   display: flex;
   align-items: center;
   gap: 6px;
   width: 100%;
 }
-
-/* Arrows */
 
 .nav-btn {
   display: flex;
@@ -284,14 +258,12 @@ const outfitSuggestion = computed(() => {
 
   width: 32px;
   height: 32px;
-
   min-width: 32px;
 
   color: #2563EB;
   font-size: 20px;
 
   cursor: pointer;
-
   flex-shrink: 0;
 
   transition: 0.2s ease;
@@ -306,12 +278,9 @@ const outfitSuggestion = computed(() => {
   transform: scale(0.95);
 }
 
-/* Cards */
-
 .cards {
   display: flex;
   gap: 8px;
-
   flex: 1;
   min-width: 0;
 
@@ -319,32 +288,20 @@ const outfitSuggestion = computed(() => {
   overflow-y: hidden;
 
   scroll-behavior: smooth;
-
-  scrollbar-width: none;
-
-  direction: ltr;
-}
-
-.cards::-webkit-scrollbar {
-  display: none;
 }
 
 .day-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-
   gap: 4px;
 
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
-
   border-radius: 12px;
 
   padding: 10px 8px;
-
   min-width: 78px;
-
   flex-shrink: 0;
 
   text-align: center;
@@ -375,5 +332,4 @@ const outfitSuggestion = computed(() => {
   font-size: 10px;
   color: #94A3B8;
 }
-
 </style>
