@@ -7,9 +7,15 @@ const props = defineProps({
 })
 
 const showOutfit = ref(false)
+const cardsRef = ref(null)
 
 function toggleOutfit() {
   showOutfit.value = !showOutfit.value
+}
+
+function scroll(direction) {
+  if (!cardsRef.value) return
+  cardsRef.value.scrollBy({ left: direction * 160, behavior: 'smooth' })
 }
 
 const outfitSuggestion = computed(() => {
@@ -62,8 +68,8 @@ const outfitSuggestion = computed(() => {
     </div>
 
     <div class="forecast-row">
-      <button class="nav-btn">›</button>
-      <div class="cards">
+      <button class="nav-btn" @click="scroll(1)">›</button>
+      <div class="cards" ref="cardsRef">
         <div
           v-for="(date, i) in daily.time"
           :key="date"
@@ -78,7 +84,7 @@ const outfitSuggestion = computed(() => {
           <span class="cond">{{ weatherCodeToInfo(daily.weather_code[i]).label }}</span>
         </div>
       </div>
-      <button class="nav-btn">‹</button>
+      <button class="nav-btn" @click="scroll(-1)">‹</button>
     </div>
   </div>
 </template>
@@ -129,7 +135,7 @@ const outfitSuggestion = computed(() => {
   color: #334155;
 }
 .outfit-list li { margin-top: 2px; }
-  .forecast-row {
+.forecast-row {
   display: flex;
   align-items: center;
   gap: 6px;
