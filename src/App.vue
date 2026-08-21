@@ -8,6 +8,7 @@ import SunInfoRow from './components/SunInfoRow.vue'
 import FavoritesList from './components/FavoritesList.vue'
 
 import { getWeather } from './services/weatherApi'
+
 import {
   getFavorites,
   addFavorite,
@@ -27,6 +28,7 @@ onMounted(() => {
 
 async function loadCity(city) {
   error.value = ''
+
   cityName.value = city.name
   currentCity.value = city
 
@@ -82,13 +84,16 @@ function useCurrentLocation() {
   <div class="app">
 
     <div class="hero">
+
       <h1>🌤️ تطبيق الطقس</h1>
 
       <p class="subtitle">
         اعرف حالة الطقس في أي مدينة حول العالم
       </p>
 
-      <SearchBar @select-city="handleSelectCity" />
+      <SearchBar
+        @select-city="handleSelectCity"
+      />
 
       <p
         class="location-link"
@@ -100,6 +105,7 @@ function useCurrentLocation() {
       <p class="hint">
         📍 مثال: دمشق، الرياض، القاهرة، إسطنبول...
       </p>
+
     </div>
 
     <FavoritesList
@@ -107,15 +113,25 @@ function useCurrentLocation() {
       @select-favorite="loadCity"
     />
 
-    <p v-if="error" class="error">
+    <p
+      v-if="error"
+      class="error"
+    >
       {{ error }}
     </p>
 
-    <div v-if="!weather" class="welcome-card">
+    <div
+      v-if="!weather"
+      class="welcome-card"
+    >
 
-      <div class="welcome-icon">⛅</div>
+      <div class="welcome-icon">
+        ⛅
+      </div>
 
-      <h2>مرحبًا بك في تطبيق الطقس</h2>
+      <h2>
+        مرحبًا بك في تطبيق الطقس
+      </h2>
 
       <p class="welcome-text">
         ابحث عن أي مدينة لمعرفة حالة الطقس الحالية
@@ -126,29 +142,46 @@ function useCurrentLocation() {
 
         <div class="feature">
           <span class="feature-icon">🌡️</span>
-          <span class="feature-title">درجة الحرارة</span>
-          <span class="feature-desc">حالية ودقيقة</span>
+          <span class="feature-title">
+            درجة الحرارة
+          </span>
+          <span class="feature-desc">
+            حالية ودقيقة
+          </span>
         </div>
 
         <div class="feature">
           <span class="feature-icon">💧</span>
-          <span class="feature-title">الرطوبة</span>
-          <span class="feature-desc">نسبة الرطوبة</span>
+          <span class="feature-title">
+            الرطوبة
+          </span>
+          <span class="feature-desc">
+            نسبة الرطوبة
+          </span>
         </div>
 
         <div class="feature">
           <span class="feature-icon">💨</span>
-          <span class="feature-title">سرعة الرياح</span>
-          <span class="feature-desc">اتجاه وسرعة الرياح</span>
+          <span class="feature-title">
+            سرعة الرياح
+          </span>
+          <span class="feature-desc">
+            اتجاه وسرعة الرياح
+          </span>
         </div>
 
         <div class="feature">
           <span class="feature-icon">📅</span>
-          <span class="feature-title">توقعات 5 أيام</span>
-          <span class="feature-desc">تحديث مستمر</span>
+          <span class="feature-title">
+            توقعات 5 أيام
+          </span>
+          <span class="feature-desc">
+            تحديث مستمر
+          </span>
         </div>
 
       </div>
+
     </div>
 
     <template v-else>
@@ -310,5 +343,3 @@ body {
   }
 }
 </style>
-
-
